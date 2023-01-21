@@ -38,6 +38,16 @@ public class Drivetrain extends SubsystemBase {
     drive.arcadeDrive(stick.getY(), -stick.getTwist());
   }
 
+  public void arcadeDrive(double left, double right) {
+    mLeft.set(left);
+    mRight.set(right);
+  }
+
+  public void stop() {
+    drive.arcadeDrive(0, 0);
+  }
+
+
   private void configureMotors(){
     leftMotorOne.configFactoryDefault();
     leftMotorTwo.configFactoryDefault();

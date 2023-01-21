@@ -5,14 +5,22 @@
 package frc.robot;
 
 import java.util.ArrayList;
+
+import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.IntegerSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RepeatCommand;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Commands.DiffDrive;
+import frc.robot.Commands.MoveToTag;
+import frc.robot.Commands.TurnToTag;
 import frc.robot.Drivetrain;
 import frc.robot.Commands.Auton;
 
@@ -21,10 +29,21 @@ import frc.robot.Commands.Auton;
  * arcade steering.
  */
 public class Robot extends TimedRobot {
-  public static final Joystick m_stick = new Joystick(0);
+  
   public static final Drivetrain DRIVETRAIN = new Drivetrain();
+  public static final Joystick m_stick = new Joystick(0);
+  public static final JoystickButton move = new JoystickButton(m_stick, 1);
+  public static final JoystickButton turn = new JoystickButton(m_stick, 2);
+
+  private Command autocommand_one;
+  private RepeatCommand autocommand_two;
 
   private NetworkTableInstance networkTableInstance;
+  private DoubleSubscriber apriltagSubX;
+  private DoubleSubscriber apriltagSubY;
+  private IntegerSubscriber apriltagId;
+  private DoubleSubscriber apriltagDistance;
+  private BooleanSubscriber apriltagDetected;
 
   @Override
   public void robotPeriodic() {
@@ -33,31 +52,76 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
+    networkTableInstance = NetworkTableInstance.getDefault();
+    
+    NetworkTable apriltagData = networkTableInstance.getTable("SmartDashboard");
+    apriltagSubX = apriltagData.getDoubleTopic("X Offset").subscribe(-999999);
+    // apriltagSubY = apriltagData.getDoubleTopic("Y Offset").subscribe(-999999);
+    // apriltagId = apriltagData.getIntegerTopic("id").subscribe(-1);
+    apriltagDistance = apriltagData.getDoubleTopic("Distance").subscribe(-1);
+    // apriltagDetected = apriltagData.getBooleanTopic("detected").subscribe(false);
+    move.whileTrue(new MoveToTag(() -> apriltagDistance.get()));
+    turn.whileTrue(new TurnToTag(() -> apriltagSubX.get()));
+
+
+    // autocommand_one = new RepeatCommand(new TurnToTag(() -> apriltagSubX.get()));
+    // autocommand_two = new RepeatCommand(new MoveToTag(() -> apriltagDistance.get()));
+   
+    
+    // CommandScheduler.getInstance().registerSubsystem(DRIVETRAIN);
     // We need to invert one side of the drivetrain so that positive voltages
     // result in both sides moving forward. Depending on how your robot's
     // gearbox is constructed, you might have to invert the left side instead.
-    //CommandScheduler.getInstance().setDefaultCommand(DRIVETRAIN, new diffDrive());
+    
+    
 
+  }
+
+  public void teleopInit() {
+    CommandScheduler.getInstance().setDefaultCommand(DRIVETRAIN, new DiffDrive());
   }
 
   @Override
   public void teleopPeriodic() {
-    DRIVETRAIN.arcadeDrive(m_stick);
+    CommandScheduler.getInstance().run();
+    //  CommandScheduler.getInstance().setDefaultCommand(DRIVETRAIN, new DiffDrive());
   }
 
   @Override
   public void autonomousInit() {
-    //auton = new Auton(DRIVETRAIN, m_stick, networkTableInstance);
+    CommandScheduler.getInstance().registerSubsystem(Robot.DRIVETRAIN);
+
+   
+    
+    // autocommand_one = new RepeatCommand(new TurnToTag(() -> apriltagSubX.get()));
+    // autocommand_two = new RepeatCommand(new MoveToTag(() -> apriltagDistance.get()));
+    // autocommand_one.schedule();
+    // autocommand_two.schedule();
   }
 
   @Override
   public void autonomousPeriodic() {
-    // System.out.print("wow");
-    // auton.execute();
+    CommandScheduler.getInstance().run();
+    // Double x_offset = this.apriltagSubX.get();
+    // Double y_offset = this.apriltagSubY.get();
+    // Long id = this.apriltagId.get();
+    // Double distance = this.apriltagDistance.get();
+    // Boolean detected = this.apriltagDetected.get();
+    // if(distance > 30){
+    //   DRIVETRAIN.arcadeDrive(0.2, x_offset, distance);
+    //   System.out.println(distance);
+    // } 
+    // System.out.print(x_offset);
+    
+    
+    /*
+    System.out.print(x_offset);
+    System.out.print(" " + y_offset);
+    System.out.print(" " + id);
+    System.out.print(" " + distance);
+    System.out.print(" " + detected);
+    System.out.println();
+    */
 
-    //apriltagData.addAll(apriltagData)
-    
-    
-    //SmartDashboard.putNumber("jet", apriltagSubX.get()); 
   }
 }
