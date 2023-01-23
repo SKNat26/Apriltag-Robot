@@ -2,10 +2,7 @@ package frc.robot.Commands;
 
 import java.util.function.Supplier;
 
-import javax.swing.plaf.synth.SynthSeparatorUI;
-
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import frc.robot.Robot;
 
 public class MoveToTag extends CommandBase {

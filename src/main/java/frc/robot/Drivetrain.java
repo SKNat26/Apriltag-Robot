@@ -41,6 +41,7 @@ public class Drivetrain extends SubsystemBase {
   public void arcadeDrive(double left, double right) {
     mLeft.set(left);
     mRight.set(right);
+    drive.feed();
   }
 
   public void stop() {

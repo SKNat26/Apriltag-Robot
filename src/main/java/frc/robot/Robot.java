@@ -4,25 +4,19 @@
 
 package frc.robot;
 
-import java.util.ArrayList;
-
 import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.IntegerSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Commands.DiffDrive;
 import frc.robot.Commands.MoveToTag;
 import frc.robot.Commands.TurnToTag;
-import frc.robot.Drivetrain;
-import frc.robot.Commands.Auton;
 
 /**
  * This is a demo program showing the use of the DifferentialDrive class. Runs the motors with
@@ -35,8 +29,7 @@ public class Robot extends TimedRobot {
   public static final JoystickButton move = new JoystickButton(m_stick, 1);
   public static final JoystickButton turn = new JoystickButton(m_stick, 2);
 
-  private Command autocommand_one;
-  private RepeatCommand autocommand_two;
+
 
   private NetworkTableInstance networkTableInstance;
   private DoubleSubscriber apriltagSubX;
@@ -55,11 +48,11 @@ public class Robot extends TimedRobot {
     networkTableInstance = NetworkTableInstance.getDefault();
     
     NetworkTable apriltagData = networkTableInstance.getTable("SmartDashboard");
-    apriltagSubX = apriltagData.getDoubleTopic("X Offset").subscribe(-999999);
-    // apriltagSubY = apriltagData.getDoubleTopic("Y Offset").subscribe(-999999);
-    // apriltagId = apriltagData.getIntegerTopic("id").subscribe(-1);
-    apriltagDistance = apriltagData.getDoubleTopic("Distance").subscribe(-1);
-    // apriltagDetected = apriltagData.getBooleanTopic("detected").subscribe(false);
+    apriltagSubX = apriltagData.getDoubleTopic("X Offset").subscribe(-999999, PubSubOption.periodic(0.02));
+    apriltagSubY = apriltagData.getDoubleTopic("Y Offset").subscribe(-999999, PubSubOption.periodic(0.02));
+    apriltagId = apriltagData.getIntegerTopic("id").subscribe(-1, PubSubOption.periodic(0.02));
+    apriltagDistance = apriltagData.getDoubleTopic("Distance").subscribe(-1, PubSubOption.periodic(0.02));
+    apriltagDetected = apriltagData.getBooleanTopic("detected").subscribe(false, PubSubOption.periodic(0.02));
     move.whileTrue(new MoveToTag(() -> apriltagDistance.get()));
     turn.whileTrue(new TurnToTag(() -> apriltagSubX.get()));
 
@@ -89,7 +82,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-    CommandScheduler.getInstance().registerSubsystem(Robot.DRIVETRAIN);
 
    
     
@@ -101,7 +93,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-    CommandScheduler.getInstance().run();
     // Double x_offset = this.apriltagSubX.get();
     // Double y_offset = this.apriltagSubY.get();
     // Long id = this.apriltagId.get();

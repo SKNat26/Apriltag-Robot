@@ -3,13 +3,10 @@ package frc.robot.Commands;
 import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import frc.robot.Robot;
 
 public class TurnToTag extends CommandBase {
-    private Supplier<Double> distance;
     private Supplier<Double> x_offset;
-    private Supplier<Boolean> detected;
 
     public TurnToTag(Supplier<Double> x_offset) {
         this.x_offset = x_offset;
@@ -24,10 +21,10 @@ public class TurnToTag extends CommandBase {
       @Override
       public void execute() {
         if(x_offset.get() != -999999) {
-            if(x_offset.get() < -200) {
+            if(x_offset.get() < -10) {
                 Robot.DRIVETRAIN.arcadeDrive(0.2, -0.2);
                 System.out.println("turn left");
-            } else if (x_offset.get() > 200) {
+            } else if (x_offset.get() > 10) {
                 Robot.DRIVETRAIN.arcadeDrive(-0.2, 0.2);
                 System.out.println("turn right");
             }
@@ -44,6 +41,6 @@ public class TurnToTag extends CommandBase {
       // Returns true when the command should end.
       @Override
       public boolean isFinished() {
-        return x_offset.get() > -200 && x_offset.get() < 200;
+        return x_offset.get() > -10 && x_offset.get() < 10;
       }
 }
